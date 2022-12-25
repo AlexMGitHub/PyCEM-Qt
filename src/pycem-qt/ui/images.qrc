@@ -1,0 +1,29 @@
+<RCC>
+  <qresource prefix="fda">
+    <file>../../../img/fda/diagrams/AsymmetricStripline.png</file>
+    <file>../../../img/fda/diagrams/BroadsideStripline.png</file>
+    <file>../../../img/fda/diagrams/Coaxial.png</file>
+    <file>../../../img/fda/diagrams/DifferentialMicrostrip.png</file>
+    <file>../../../img/fda/diagrams/DifferentialStripline.png</file>
+    <file>../../../img/fda/diagrams/Microstrip.png</file>
+    <file>../../../img/fda/diagrams/SymmetricStripline.png</file>
+    <file>../../../img/fda/cards/AsymmetricStripline.png</file>
+    <file>../../../img/fda/cards/BroadsideStripline.png</file>
+    <file>../../../img/fda/cards/Coaxial.png</file>
+    <file>../../../img/fda/cards/DifferentialMicrostrip.png</file>
+    <file>../../../img/fda/cards/DifferentialStripline.png</file>
+    <file>../../../img/fda/cards/Microstrip.png</file>
+    <file>../../../img/fda/cards/SymmetricStripline.png</file>
+  </qresource>
+  <qresource prefix="icons">
+    <file>../../../img/icons/PyCEM.png</file>
+  </qresource>
+  <qresource prefix="fdtd">
+    <file>../../../img/fdtd/cards/RickerTMz2D.png</file>
+    <file>../../../img/fdtd/cards/TFSFCornerReflector.png</file>
+    <file>../../../img/fdtd/cards/TFSFDisk.png</file>
+    <file>../../../img/fdtd/cards/TFSFMinefield.png</file>
+    <file>../../../img/fdtd/cards/TFSFPlate.png</file>
+    <file>../../../img/fdtd/cards/TFSFSource.png</file>
+  </qresource>
+</RCC>
