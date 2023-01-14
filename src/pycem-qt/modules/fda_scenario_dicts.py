@@ -210,7 +210,7 @@ fda_scenarios_list = [symmetric_stripline_dict,
                       microstrip_dict,
                       coaxial_dict,
                       asymmetric_stripline_dict,
-                      diff_stripline_dict,
+                      diff_microstrip_dict,
                       broadside_stripline_dict,
                       diff_stripline_dict
                       ]

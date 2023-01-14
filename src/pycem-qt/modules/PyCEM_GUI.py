@@ -508,6 +508,7 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fdaform1_input = QDoubleSpinBox(self.frame_21)
         self.doubleSpinBox_fdaform1_input.setObjectName(
             u"doubleSpinBox_fdaform1_input")
+        self.doubleSpinBox_fdaform1_input.setDecimals(3)
 
         self.verticalLayout_2.addWidget(self.doubleSpinBox_fdaform1_input)
 
@@ -533,6 +534,7 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fdaform2_input = QDoubleSpinBox(self.frame_21)
         self.doubleSpinBox_fdaform2_input.setObjectName(
             u"doubleSpinBox_fdaform2_input")
+        self.doubleSpinBox_fdaform2_input.setDecimals(3)
 
         self.verticalLayout_2.addWidget(self.doubleSpinBox_fdaform2_input)
 
@@ -556,6 +558,7 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fdaform3_input = QDoubleSpinBox(self.frame_21)
         self.doubleSpinBox_fdaform3_input.setObjectName(
             u"doubleSpinBox_fdaform3_input")
+        self.doubleSpinBox_fdaform3_input.setDecimals(3)
 
         self.verticalLayout_2.addWidget(self.doubleSpinBox_fdaform3_input)
 
@@ -581,6 +584,7 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fdaform4_input = QDoubleSpinBox(self.frame_21)
         self.doubleSpinBox_fdaform4_input.setObjectName(
             u"doubleSpinBox_fdaform4_input")
+        self.doubleSpinBox_fdaform4_input.setDecimals(3)
 
         self.verticalLayout_2.addWidget(self.doubleSpinBox_fdaform4_input)
 
@@ -604,6 +608,7 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fdaform5_input = QDoubleSpinBox(self.frame_21)
         self.doubleSpinBox_fdaform5_input.setObjectName(
             u"doubleSpinBox_fdaform5_input")
+        self.doubleSpinBox_fdaform5_input.setDecimals(3)
 
         self.verticalLayout_2.addWidget(self.doubleSpinBox_fdaform5_input)
 
@@ -627,6 +632,7 @@ class Ui_MainWindow(object):
         self.doubleSpinBox_fdaform6_input = QDoubleSpinBox(self.frame_21)
         self.doubleSpinBox_fdaform6_input.setObjectName(
             u"doubleSpinBox_fdaform6_input")
+        self.doubleSpinBox_fdaform6_input.setDecimals(3)
 
         self.verticalLayout_2.addWidget(self.doubleSpinBox_fdaform6_input)
 

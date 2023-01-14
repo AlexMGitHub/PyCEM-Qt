@@ -1,11 +1,13 @@
 """Run PyCEM-Qt application."""
-
 # %% Imports
 # Standard system imports
 import sys
 from enum import IntEnum
 
 # Related third party imports
+import pandas as pd
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtCore import Qt
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import (
@@ -30,6 +32,14 @@ from modules.fda_scenario_dicts import (
     fda_scenarios_list
 )
 from modules.fdtd_scenario_dicts import fdtd_scenario_dict
+from modules.fda_scenarios import (
+    SymmetricStripline,
+    Microstrip, Coaxial,
+    AsymmetricStripline,
+    DifferentialMicrostrip,
+    BroadsideStripline,
+    DifferentialStripline
+)
 
 
 # %% Custom Classes
@@ -55,6 +65,46 @@ class PicButton(QAbstractButton):
 
     def sizeHint(self):
         return self.pixmap.size()
+
+
+class TableModel(QtCore.QAbstractTableModel):
+    """QTableView model for data in Pandas dataframe format."""
+
+    def __init__(self, data):
+        super(TableModel, self).__init__()
+        self._data = data
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self._data.iloc[index.row(), index.column()]
+            if isinstance(value, float):
+                # Render float to 2 dp
+                return str("%.2f" % value)
+            return str(value)
+
+        if role == Qt.TextAlignmentRole:
+            value = self._data.iloc[index.row(), index.column()]
+            if isinstance(value, int) or isinstance(value, float):
+                # Align center, vertical middle.
+                return Qt.AlignVCenter + Qt.AlignHCenter
+            else:
+                # Align left, vertical middle.
+                return Qt.AlignVCenter + Qt.AlignLeft
+
+    def rowCount(self, index):
+        return self._data.shape[0]
+
+    def columnCount(self, index):
+        return self._data.shape[1]
+
+    def headerData(self, section, orientation, role):
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._data.columns[section])
+
+            if orientation == Qt.Vertical:
+                return str(self._data.index[section])
 
 
 # %% PyCEM-Qt main window
@@ -104,6 +154,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.load_fdtd_scenario_page)
         self.pushButton_tfsf_minefield.released.connect(
             self.load_fdtd_scenario_page)
+
+        # Widget signals on FDA Sim page.
+        self.pushButton_analytical.released.connect(self.analytical_soln)
+
+        # Temp
+        self.fda_scenario = None
 
     def hide_nav_pushbuttons(self):
         """Hide buttons in navigation pane."""
@@ -176,46 +232,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_sstrip.setChecked(False)
             self.pushButton_nav_1.setChecked(False)
+            self.fda_scenario = SymmetricStripline
             self.load_fda_scenario(symmetric_stripline_dict)
         if self.pushButton_ms.isChecked() or \
                 self.pushButton_nav_2.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_ms.setChecked(False)
             self.pushButton_nav_2.setChecked(False)
+            self.fda_scenario = Microstrip
             self.load_fda_scenario(microstrip_dict)
         if self.pushButton_coax.isChecked() or \
                 self.pushButton_nav_3.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_coax.setChecked(False)
             self.pushButton_nav_3.setChecked(False)
+            self.fda_scenario = Coaxial
             self.load_fda_scenario(coaxial_dict)
         if self.pushButton_astrip.isChecked() or \
                 self.pushButton_nav_4.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_astrip.setChecked(False)
             self.pushButton_nav_4.setChecked(False)
+            self.fda_scenario = AsymmetricStripline
             self.load_fda_scenario(asymmetric_stripline_dict)
         if self.pushButton_diffms.isChecked() or \
                 self.pushButton_nav_5.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_diffms.setChecked(False)
             self.pushButton_nav_5.setChecked(False)
+            self.fda_scenario = DifferentialMicrostrip
             self.load_fda_scenario(diff_microstrip_dict)
         if self.pushButton_bstrip.isChecked() or \
                 self.pushButton_nav_6.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_bstrip.setChecked(False)
             self.pushButton_nav_6.setChecked(False)
+            self.fda_scenario = BroadsideStripline
             self.load_fda_scenario(broadside_stripline_dict)
         if self.pushButton_dstrip.isChecked() or \
                 self.pushButton_nav_7.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDA_SCENARIOS)
             self.pushButton_dstrip.setChecked(False)
             self.pushButton_nav_7.setChecked(False)
+            self.fda_scenario = DifferentialStripline
             self.load_fda_scenario(diff_stripline_dict)
 
     def load_fda_scenario(self, scenario):
         """Populate FDA page with appropriate scenario text and diagram."""
+        self.tableView.setModel(None)
         self.label_fda_diagram.setPixmap(QPixmap(scenario['diagram']))
         self.label_fda_title.setText(scenario['title'])
         self.label_fda_desc.setText(scenario['description'])
@@ -290,6 +354,86 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_fdtd_title.setText(scenario['title'])
         self.label_fdtd_desc.setText(scenario['description'])
         self.label_fdtd_anim_title.setText(scenario['title'] + ' Animation')
+
+    def analytical_soln(self):
+        """Calculate and display analytical solution of transmission line."""
+        if self.fda_scenario == SymmetricStripline:
+            scenario = self.fda_scenario(
+                trace_w=self.doubleSpinBox_fdaform1_input.value()/1000,
+                sub_thk=self.doubleSpinBox_fdaform2_input.value()/1000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+            )
+        elif self.fda_scenario == Microstrip:
+            scenario = self.fda_scenario(
+                trace_w=self.doubleSpinBox_fdaform1_input.value()/1000,
+                sub_thk=self.doubleSpinBox_fdaform2_input.value()/1000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+            )
+        elif self.fda_scenario == Coaxial:
+            scenario = self.fda_scenario(
+                inner_rad=self.doubleSpinBox_fdaform1_input.value()/2000,
+                outer_rad=self.doubleSpinBox_fdaform2_input.value()/2000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+            )
+        elif self.fda_scenario == AsymmetricStripline:
+            scenario = self.fda_scenario(
+                trace_w=self.doubleSpinBox_fdaform1_input.value()/1000,
+                sub_thk=self.doubleSpinBox_fdaform2_input.value()/1000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+                offset=self.doubleSpinBox_fdaform6_input.value()/1000,
+            )
+        elif self.fda_scenario == DifferentialMicrostrip:
+            scenario = self.fda_scenario(
+                trace_w=self.doubleSpinBox_fdaform1_input.value()/1000,
+                sub_thk=self.doubleSpinBox_fdaform2_input.value()/1000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+                spacing=self.doubleSpinBox_fdaform6_input.value()/1000,
+            )
+        elif self.fda_scenario == BroadsideStripline:
+            scenario = self.fda_scenario(
+                trace_w=self.doubleSpinBox_fdaform1_input.value()/1000,
+                sub_thk=self.doubleSpinBox_fdaform2_input.value()/1000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+                spacing=self.doubleSpinBox_fdaform6_input.value()/1000,
+            )
+        elif self.fda_scenario == DifferentialStripline:
+            scenario = self.fda_scenario(
+                trace_w=self.doubleSpinBox_fdaform1_input.value()/1000,
+                sub_thk=self.doubleSpinBox_fdaform2_input.value()/1000,
+                dy=self.doubleSpinBox_fdaform3_input.value()/1000,
+                Er=self.doubleSpinBox_fdaform4_input.value(),
+                dx=self.doubleSpinBox_fdaform5_input.value()/1000,
+                spacing=self.doubleSpinBox_fdaform6_input.value()/1000,
+            )
+        results = scenario.analytical_soln()
+        print(results)
+        self.pushButton_analytical.setChecked(False)
+        if not isinstance(results, tuple):
+            data = pd.DataFrame([
+                ['Characteristic Impedance (Ohms)', results, 0.0, 0.0]
+            ], columns=['Quantity', 'Analytical Formula', 'FDA Simulation', 'Percent Difference'])
+        else:
+            data = pd.DataFrame([
+                ['Differential Impedance (Ohms)', results[0], 0.0, 0.0],
+                ['Common Impedance (Ohms)', results[1], 0, 0],
+            ], columns=['Quantity', 'Analytical Formula', 'FDA Simulation', 'Percent Difference'])
+        self.tableView.setModel(TableModel(data))
+        self.tableView.setColumnWidth(0, 250)
+        self.tableView.setColumnWidth(1, 200)
+        self.tableView.setColumnWidth(2, 200)
+        self.tableView.setColumnWidth(3, 200)
 
 
 app = QApplication(sys.argv)

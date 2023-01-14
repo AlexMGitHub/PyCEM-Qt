@@ -1441,7 +1441,11 @@ margin-right: 10;
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform1_input"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform1_input">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_fdaform1_desc">
@@ -1482,7 +1486,11 @@ margin-right: 10;
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform2_input"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform2_input">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_fdaform2_desc">
@@ -1523,7 +1531,11 @@ margin-right: 10;
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform3_input"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform3_input">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_fdaform3_desc">
@@ -1564,7 +1576,11 @@ margin-right: 10;
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform4_input"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform4_input">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_fdaform4_desc">
@@ -1605,7 +1621,11 @@ margin-right: 10;
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform5_input"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform5_input">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_fdaform5_desc">
@@ -1646,7 +1666,11 @@ margin-right: 10;
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform6_input"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_fdaform6_input">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_fdaform6_desc">
