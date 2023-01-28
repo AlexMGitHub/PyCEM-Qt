@@ -40,6 +40,7 @@ from modules.fda_scenarios import (
     BroadsideStripline,
     DifferentialStripline
 )
+from modules.utilities import get_project_root
 
 
 # %% Custom Classes
@@ -157,6 +158,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Widget signals on FDA Sim page.
         self.pushButton_analytical.released.connect(self.analytical_soln)
+        self.pushButton_simulate.released.connect(self.run_fda_sim)
 
         # Temp
         self.fda_scenario = None
@@ -420,14 +422,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         results = scenario.analytical_soln()
         print(results)
         self.pushButton_analytical.setChecked(False)
+        self.update_fda_scenario_table(results)
+        return scenario, results
+
+    def run_fda_sim(self):
+        """Run FDA simulation using input values for scenario."""
+        scenario, analytical_results = self.analytical_soln()
+        root = get_project_root()
+        filepath = root / 'img/fda/scenarios'
+        if not scenario.differential:
+            _, _, sim_z0 = scenario.run_sim(filepath=filepath,
+                                            set_progress=None)
+            self.update_fda_scenario_table(analytical_results, sim_z0)
+        else:
+            _, _, diff_z0, _, _, comm_z0, _, _ = scenario.run_sim(filepath=filepath,
+                                                                  set_progress=None)
+            self.update_fda_scenario_table(
+                analytical_results, (diff_z0, comm_z0))
+        self.pushButton_simulate.setChecked(False)
+
+    def update_fda_scenario_table(self, results, sim_results=0.0):
+        """Update the results table for the FDA scenario."""
         if not isinstance(results, tuple):
+            if sim_results == 0:
+                perc_diff = 0.0
+            else:
+                perc_diff = (sim_results - results) / sim_results * 100
             data = pd.DataFrame([
-                ['Characteristic Impedance (Ohms)', results, 0.0, 0.0]
+                ['Characteristic Impedance (Ohms)',
+                 results, sim_results, perc_diff]
             ], columns=['Quantity', 'Analytical Formula', 'FDA Simulation', 'Percent Difference'])
         else:
+            if sim_results == 0:
+                diff_perc_diff = 0.0
+                comm_perc_diff = 0.0
+                diff_z0 = 0.0
+                comm_z0 = 0.0
+            else:
+                diff_perc_diff = (
+                    sim_results[0] - results[0]) / sim_results[0] * 100
+                comm_perc_diff = (
+                    sim_results[1] - results[1]) / sim_results[1] * 100
+                diff_z0 = sim_results[0]
+                comm_z0 = sim_results[1]
             data = pd.DataFrame([
-                ['Differential Impedance (Ohms)', results[0], 0.0, 0.0],
-                ['Common Impedance (Ohms)', results[1], 0, 0],
+                ['Differential Impedance (Ohms)', results[0],
+                 diff_z0, diff_perc_diff],
+                ['Common Impedance (Ohms)', results[1],
+                 comm_z0, comm_perc_diff],
             ], columns=['Quantity', 'Analytical Formula', 'FDA Simulation', 'Percent Difference'])
         self.tableView.setModel(TableModel(data))
         self.tableView.setColumnWidth(0, 250)
