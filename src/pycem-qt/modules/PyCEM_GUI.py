@@ -18,9 +18,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
                            QTransform)
 from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QFrame, QHBoxLayout,
                                QHeaderView, QLabel, QMainWindow, QMenu,
-                               QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
-                               QStackedWidget, QStatusBar, QTableView, QVBoxLayout,
-                               QWidget)
+                               QMenuBar, QProgressBar, QPushButton, QScrollArea,
+                               QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
+                               QTableView, QVBoxLayout, QWidget)
 import modules.images_rc
 
 
@@ -477,6 +477,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.pushButton_simulate)
 
+        self.progressBar_FDA_sim = QProgressBar(self.frame_20)
+        self.progressBar_FDA_sim.setObjectName(u"progressBar_FDA_sim")
+        self.progressBar_FDA_sim.setEnabled(True)
+        self.progressBar_FDA_sim.setMaximum(0)
+        self.progressBar_FDA_sim.setValue(-1)
+
+        self.verticalLayout_3.addWidget(self.progressBar_FDA_sim)
+
         self.verticalSpacer_10 = QSpacerItem(
             20, 10, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -650,12 +658,28 @@ class Ui_MainWindow(object):
 
         self.frame_19 = QFrame(self.FDA_Sim)
         self.frame_19.setObjectName(u"frame_19")
-        self.frame_19.setGeometry(QRect(460, 20, 920, 721))
+        self.frame_19.setGeometry(QRect(460, 20, 1121, 911))
         self.frame_19.setFrameShape(QFrame.StyledPanel)
         self.frame_19.setFrameShadow(QFrame.Raised)
         self.verticalLayout_4 = QVBoxLayout(self.frame_19)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.label_fda_diagram = QLabel(self.frame_19)
+        self.frame_3 = QFrame(self.frame_19)
+        self.frame_3.setObjectName(u"frame_3")
+        self.frame_3.setMinimumSize(QSize(0, 600))
+        self.frame_3.setFrameShape(QFrame.StyledPanel)
+        self.frame_3.setFrameShadow(QFrame.Raised)
+        self.verticalLayout = QVBoxLayout(self.frame_3)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.scrollArea = QScrollArea(self.frame_3)
+        self.scrollArea.setObjectName(u"scrollArea")
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollAreaWidgetContents = QWidget()
+        self.scrollAreaWidgetContents.setObjectName(
+            u"scrollAreaWidgetContents")
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 1079, 578))
+        self.verticalLayout_5 = QVBoxLayout(self.scrollAreaWidgetContents)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.label_fda_diagram = QLabel(self.scrollAreaWidgetContents)
         self.label_fda_diagram.setObjectName(u"label_fda_diagram")
         sizePolicy5 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy5.setHorizontalStretch(0)
@@ -668,7 +692,58 @@ class Ui_MainWindow(object):
             QPixmap(u":/fda/img/fda/diagrams/SymmetricStripline.png"))
         self.label_fda_diagram.setScaledContents(False)
 
-        self.verticalLayout_4.addWidget(self.label_fda_diagram)
+        self.verticalLayout_5.addWidget(self.label_fda_diagram)
+
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+
+        self.verticalLayout.addWidget(self.scrollArea)
+
+        self.verticalLayout_4.addWidget(self.frame_3)
+
+        self.frame_2 = QFrame(self.frame_19)
+        self.frame_2.setObjectName(u"frame_2")
+        self.frame_2.setFrameShape(QFrame.StyledPanel)
+        self.frame_2.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_3 = QHBoxLayout(self.frame_2)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.fda_prev_image = QPushButton(self.frame_2)
+        self.fda_prev_image.setObjectName(u"fda_prev_image")
+        self.fda_prev_image.setEnabled(False)
+        self.fda_prev_image.setMaximumSize(QSize(250, 16777215))
+        icon = QIcon()
+        iconThemeName = u"go-previous"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon = QIcon.fromTheme(iconThemeName)
+        else:
+            icon.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
+        self.fda_prev_image.setIcon(icon)
+
+        self.horizontalLayout_3.addWidget(self.fda_prev_image)
+
+        self.qlabel_fda_image = QLabel(self.frame_2)
+        self.qlabel_fda_image.setObjectName(u"qlabel_fda_image")
+        self.qlabel_fda_image.setMaximumSize(QSize(250, 16777215))
+        self.qlabel_fda_image.setAlignment(Qt.AlignCenter)
+
+        self.horizontalLayout_3.addWidget(self.qlabel_fda_image)
+
+        self.fda_next_image = QPushButton(self.frame_2)
+        self.fda_next_image.setObjectName(u"fda_next_image")
+        self.fda_next_image.setEnabled(False)
+        self.fda_next_image.setMaximumSize(QSize(250, 16777215))
+        icon1 = QIcon()
+        iconThemeName = u"go-next"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon1 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon1.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
+        self.fda_next_image.setIcon(icon1)
+
+        self.horizontalLayout_3.addWidget(self.fda_next_image)
+
+        self.verticalLayout_4.addWidget(self.frame_2)
 
         self.tableView = QTableView(self.frame_19)
         self.tableView.setObjectName(u"tableView")
@@ -1239,6 +1314,12 @@ class Ui_MainWindow(object):
         self.label_fdaform6_desc.setText(
             QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.label_fda_diagram.setText("")
+        self.fda_prev_image.setText(QCoreApplication.translate(
+            "MainWindow", u"Previous Image", None))
+        self.qlabel_fda_image.setText(QCoreApplication.translate(
+            "MainWindow", u"SymmetricStripline", None))
+        self.fda_next_image.setText(QCoreApplication.translate(
+            "MainWindow", u"Next Image", None))
         self.label_223.setText(QCoreApplication.translate(
             "MainWindow", u"TF/SF Corner Reflector", None))
         self.label_229.setText(QCoreApplication.translate(

@@ -22,3 +22,4 @@ htmlcov/
 
 # Generated files
 *.mp4
+img/fda/scenarios/*/*.png
