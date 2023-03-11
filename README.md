@@ -18,9 +18,11 @@ The purpose of this learning project is threefold:
    libraries with Python code to enable fast parallel multithreading in a
    Python web application.
 
-PyCEM-Qt is currently a work in progress.  The FDTD simulations are written in C, and the shared libraries must be built using the following commands within the `src/C/makefiles/` directory:
+PyCEM-Qt is currently a work in progress.  It was written using Python 3.10.6 and the libraries contained in the *requirements.txt* file included with the repo.  
 
-`make -f MakeBenchmark.mk`
+The FDTD simulations are written in C, and the shared libraries must be built using the following commands within the `src/C/makefiles/` directory:
+
+`make -f MakeBenchmark.mk`  
 `make -f MakeFDTD_TMz.mk`
 
 The application can then be run by executing the following command while within the `src/pycem-qt/` directory:
