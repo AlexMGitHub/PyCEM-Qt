@@ -2,21 +2,22 @@
 # %% Imports
 # Standard system imports
 import sys
-from enum import IntEnum
+from pathlib import Path
 
 # Related third party imports
 import pandas as pd
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, QSize, QRunnable, QThreadPool, Slot
-from PySide6.QtGui import QPainter, QPixmap
+from PySide6.QtCore import QSize, QThreadPool, QUrl, Slot
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QAbstractButton,
     QLabel,
     QPushButton,
     QFrame,
 )
+from PySide6.QtMultimedia import (QAudio, QAudioOutput, QMediaFormat,
+                                  QMediaPlayer)
+from PySide6.QtMultimediaWidgets import QVideoWidget
 
 # Local application/library specific imports
 from modules.PyCEM_GUI import Ui_MainWindow
@@ -30,7 +31,6 @@ from modules.fda_scenario_dicts import (
     diff_stripline_dict,
     fda_scenarios_list
 )
-from modules.fdtd_scenario_dicts import fdtd_scenario_dict
 from modules.fda_scenarios import (
     SymmetricStripline,
     Microstrip, Coaxial,
@@ -39,113 +39,20 @@ from modules.fda_scenarios import (
     BroadsideStripline,
     DifferentialStripline
 )
+from modules.fdtd_scenarios import Grid
+from modules.fdtd_scenario_dicts import fdtd_scenario_dict
+from modules.pycem_classes import (
+    StackedPages,
+    PicButton,
+    TableModel,
+    FDA_Simulation,
+    FDTD_Simulation,
+    FDTD_Animation,
+)
 from modules.utilities import get_project_root, list_files
 
 
-# %% Custom Classes
-class StackedPages(IntEnum):
-    """Indices of pages in stacked widget."""
-    WELCOME = 0
-    FDA_CARDS = 1
-    FDA_SCENARIOS = 2
-    FDTD_CARDS = 3
-    FDTD_SCENARIOS = 4
-
-
-class PicButton(QAbstractButton):
-    """Custom class to allow clickable image."""
-
-    def __init__(self, pixmap, parent=None):
-        super().__init__(parent)
-        self.pixmap = pixmap
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.drawPixmap(event.rect(), self.pixmap)
-
-    def sizeHint(self):
-        return self.pixmap.size()
-
-
-class TableModel(QtCore.QAbstractTableModel):
-    """QTableView model for data in Pandas dataframe format."""
-
-    def __init__(self, data):
-        super(TableModel, self).__init__()
-        self._data = data
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            value = self._data.iloc[index.row(), index.column()]
-            if isinstance(value, float):
-                # Render float to 2 dp
-                return str("%.2f" % value)
-            return str(value)
-
-        if role == Qt.TextAlignmentRole:
-            value = self._data.iloc[index.row(), index.column()]
-            if isinstance(value, int) or isinstance(value, float):
-                # Align center, vertical middle.
-                return Qt.AlignVCenter + Qt.AlignHCenter
-            else:
-                # Align left, vertical middle.
-                return Qt.AlignVCenter + Qt.AlignLeft
-
-    def rowCount(self, index):
-        return self._data.shape[0]
-
-    def columnCount(self, index):
-        return self._data.shape[1]
-
-    def headerData(self, section, orientation, role):
-        # section is the index of the column/row.
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return str(self._data.columns[section])
-
-            if orientation == Qt.Vertical:
-                return str(self._data.index[section])
-
-
-class FDA_Simulation(QRunnable):
-    """
-    Worker thread to concurrently execute FDA simulation.
-    """
-
-    def __init__(self, analytical_results, filepath, scenario, qt_gui):
-        """Pass variables from Qt GUI to this worker thread."""
-        super().__init__()
-        self.analytical_results = analytical_results
-        self.filepath = filepath
-        self.scenario = scenario
-        self.qt_gui = qt_gui
-
-    @Slot()
-    def run(self):
-        """Run FDA simulation in its own thread."""
-        analytical_results = self.analytical_results
-        filepath = self.filepath
-        scenario = self.scenario
-        qt_gui = self.qt_gui
-        qt_gui.pushButton_simulate.setChecked(False)
-        if not scenario.differential:
-            _, _, sim_z0 = scenario.run_sim(filepath=filepath,
-                                            set_progress=None)
-            qt_gui.update_fda_scenario_table(analytical_results, sim_z0)
-        else:
-            _, _, diff_z0, _, _, comm_z0, _, _ = scenario.run_sim(filepath=filepath,
-                                                                  set_progress=None)
-            qt_gui.update_fda_scenario_table(
-                analytical_results, (diff_z0, comm_z0))
-        qt_gui.progressBar_FDA_sim.hide()
-        qt_gui.fda_image_idx = 0
-        qt_gui.set_fda_image_path()
-        qt_gui.fda_next_image.setEnabled(True)
-        qt_gui.fda_prev_image.setEnabled(True)
-
 # %% PyCEM-Qt main window
-
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     """Define PyCEM-Qt GUI."""
 
@@ -206,6 +113,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fda_scenario = None
         self.fda_image_list = None
         self.fda_image_idx = 0
+
+        # FDTD video player
+        self._player = QMediaPlayer()
+        self._player.errorOccurred.connect(self._player_error)
+        self._player.setVideoOutput(self.qvideo_widget)
+        self.pushButton_video_play.released.connect(self._player.play)
+        self.pushButton_video_pause.released.connect(self._player.pause)
+        self.video_error = False
+
+        # FDTD scenario buttons
+        self.fdtd_simulation_complete = False
+        self.pushButton_fdtd_simulate.released.connect(self.run_fdtd_sim)
+        self.pushButton_fdtd_animate.released.connect(
+            self.create_fdtd_animation)
+
+    @Slot("QMediaPlayer::Error", str)
+    def _player_error(self, error, error_string):
+        print(error_string, file=sys.stderr)
+        self.video_error = True
+
+    def run_fdtd_sim(self):
+        """Run the C code to simulate the FDTD scenario."""
+        worker = FDTD_Simulation(self.fdtd_scenario, self)
+        self.progressBar_fdtd_sim.show()
+        worker = self.threadpool.start(worker)
+
+    def create_fdtd_animation(self):
+        """Create the FDTD animation."""
+        self.progressBar_fdtd_animate.show()
+        vid_path = get_project_root() / ('img/fdtd/animations/' +
+                                         self.fdtd_scenario.name + '.mp4')
+        worker = FDTD_Animation(vid_path, self.fdtd_scenario, self)
+        worker = self.threadpool.start(worker)
 
     def hide_nav_pushbuttons(self):
         """Hide buttons in navigation pane."""
@@ -383,41 +323,89 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def load_fdtd_scenario_page(self):
         """Bring page with user-selected FDTD scenario to top."""
+        vid_path = str(get_project_root()) + '/img/fdtd/animations/'
+        self.pushButton_fdtd_animate.setEnabled(False)
+        self.progressBar_fdtd_sim.hide()
+        self.progressBar_fdtd_animate.hide()
+        self.fdtd_simulation_complete = False
+        self.label_fdtd_simulate.setText('Simulation not run')
+        self.label_fdtd_animate.setText('')
         if self.pushButton_ricker.isChecked() or \
                 self.pushButton_nav_1.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDTD_SCENARIOS)
             self.pushButton_ricker.setChecked(False)
             self.pushButton_nav_1.setChecked(False)
+            self.fdtd_scenario = fdtd_scenario_dict['ricker']['scenario'](
+                Grid())
+            url = vid_path + self.fdtd_scenario.name + '.mp4'
+            if Path(url).is_file():
+                self._player.setSource(QUrl(url))
+            else:
+                self._player.setSource(QUrl())
             self.load_fdtd_scenario(fdtd_scenario_dict['ricker'])
         if self.pushButton_tfsf.isChecked() or \
                 self.pushButton_nav_2.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDTD_SCENARIOS)
             self.pushButton_tfsf.setChecked(False)
             self.pushButton_nav_2.setChecked(False)
+            self.fdtd_scenario = fdtd_scenario_dict['tfsf']['scenario'](Grid())
+            url = vid_path + self.fdtd_scenario.name + '.mp4'
+            if Path(url).is_file():
+                self._player.setSource(QUrl(url))
+            else:
+                self._player.setSource(QUrl())
             self.load_fdtd_scenario(fdtd_scenario_dict['tfsf'])
         if self.pushButton_tfsf_plate.isChecked() or \
                 self.pushButton_nav_3.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDTD_SCENARIOS)
             self.pushButton_tfsf_plate.setChecked(False)
             self.pushButton_nav_3.setChecked(False)
+            self.fdtd_scenario = fdtd_scenario_dict['tfsf_plate']['scenario'](
+                Grid())
+            url = vid_path + self.fdtd_scenario.name + '.mp4'
+            if Path(url).is_file():
+                self._player.setSource(QUrl(url))
+            else:
+                self._player.setSource(QUrl())
             self.load_fdtd_scenario(fdtd_scenario_dict['tfsf_plate'])
         if self.pushButton_tfsf_disk.isChecked() or \
                 self.pushButton_nav_4.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDTD_SCENARIOS)
             self.pushButton_tfsf_disk.setChecked(False)
             self.pushButton_nav_4.setChecked(False)
+            self.fdtd_scenario = fdtd_scenario_dict['tfsf_disk']['scenario'](
+                Grid())
+            url = vid_path + self.fdtd_scenario.name + '.mp4'
+            if Path(url).is_file():
+                self._player.setSource(QUrl(url))
+            else:
+                self._player.setSource(QUrl())
             self.load_fdtd_scenario(fdtd_scenario_dict['tfsf_disk'])
         if self.pushButton_tfsf_corner.isChecked() or \
                 self.pushButton_nav_5.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDTD_SCENARIOS)
             self.pushButton_tfsf_corner.setChecked(False)
             self.pushButton_nav_5.setChecked(False)
+            self.fdtd_scenario = fdtd_scenario_dict['tfsf_corner']['scenario'](
+                Grid())
+            url = vid_path + self.fdtd_scenario.name + '.mp4'
+            if Path(url).is_file():
+                self._player.setSource(QUrl(url))
+            else:
+                self._player.setSource(QUrl())
             self.load_fdtd_scenario(fdtd_scenario_dict['tfsf_corner'])
         if self.pushButton_tfsf_minefield.isChecked() or \
                 self.pushButton_nav_6.isChecked():
             self.stackedWidget.setCurrentIndex(StackedPages.FDTD_SCENARIOS)
             self.pushButton_tfsf_minefield.setChecked(False)
             self.pushButton_nav_6.setChecked(False)
+            self.fdtd_scenario = fdtd_scenario_dict['tfsf_minefield']['scenario'](
+                Grid())
+            url = vid_path + self.fdtd_scenario.name + '.mp4'
+            if Path(url).is_file():
+                self._player.setSource(QUrl(url))
+            else:
+                self._player.setSource(QUrl())
             self.load_fdtd_scenario(fdtd_scenario_dict['tfsf_minefield'])
 
     def load_fdtd_scenario(self, scenario):

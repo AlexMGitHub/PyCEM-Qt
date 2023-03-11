@@ -16,6 +16,7 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
                            QIcon, QImage, QKeySequence, QLinearGradient,
                            QPainter, QPalette, QPixmap, QRadialGradient,
                            QTransform)
+from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QFrame, QHBoxLayout,
                                QHeaderView, QLabel, QMainWindow, QMenu,
                                QMenuBar, QProgressBar, QPushButton, QScrollArea,
@@ -1048,39 +1049,130 @@ class Ui_MainWindow(object):
         self.FDTD_Sim.setObjectName(u"FDTD_Sim")
         self.frame_17 = QFrame(self.FDTD_Sim)
         self.frame_17.setObjectName(u"frame_17")
-        self.frame_17.setGeometry(QRect(20, 20, 571, 391))
+        self.frame_17.setGeometry(QRect(40, 20, 381, 371))
         self.frame_17.setFrameShape(QFrame.StyledPanel)
         self.frame_17.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_6 = QVBoxLayout(self.frame_17)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.label_fdtd_title = QLabel(self.frame_17)
         self.label_fdtd_title.setObjectName(u"label_fdtd_title")
-        self.label_fdtd_title.setGeometry(QRect(20, 20, 501, 41))
         self.label_fdtd_title.setFont(font2)
+
+        self.verticalLayout_6.addWidget(self.label_fdtd_title)
+
         self.label_fdtd_desc = QLabel(self.frame_17)
         self.label_fdtd_desc.setObjectName(u"label_fdtd_desc")
-        self.label_fdtd_desc.setGeometry(QRect(20, 86, 411, 101))
         self.label_fdtd_desc.setWordWrap(True)
-        self.pushButton_fdtd_simulate = QPushButton(self.frame_17)
+
+        self.verticalLayout_6.addWidget(self.label_fdtd_desc)
+
+        self.verticalSpacer_14 = QSpacerItem(
+            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout_6.addItem(self.verticalSpacer_14)
+
+        self.frame_22 = QFrame(self.frame_17)
+        self.frame_22.setObjectName(u"frame_22")
+        self.frame_22.setFrameShape(QFrame.StyledPanel)
+        self.frame_22.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout = QHBoxLayout(self.frame_22)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.pushButton_fdtd_simulate = QPushButton(self.frame_22)
         self.pushButton_fdtd_simulate.setObjectName(
             u"pushButton_fdtd_simulate")
-        self.pushButton_fdtd_simulate.setGeometry(QRect(20, 210, 89, 25))
-        self.pushButton_fdtd_animate = QPushButton(self.frame_17)
-        self.pushButton_fdtd_animate.setObjectName(u"pushButton_fdtd_animate")
-        self.pushButton_fdtd_animate.setGeometry(QRect(20, 280, 89, 25))
-        self.label_fdtd_simulate = QLabel(self.frame_17)
+
+        self.horizontalLayout.addWidget(self.pushButton_fdtd_simulate)
+
+        self.label_fdtd_simulate = QLabel(self.frame_22)
         self.label_fdtd_simulate.setObjectName(u"label_fdtd_simulate")
-        self.label_fdtd_simulate.setGeometry(QRect(180, 210, 331, 17))
-        self.label_fdtd_animate = QLabel(self.frame_17)
+
+        self.horizontalLayout.addWidget(self.label_fdtd_simulate)
+
+        self.verticalLayout_6.addWidget(self.frame_22)
+
+        self.progressBar_fdtd_sim = QProgressBar(self.frame_17)
+        self.progressBar_fdtd_sim.setObjectName(u"progressBar_fdtd_sim")
+        self.progressBar_fdtd_sim.setMaximum(0)
+        self.progressBar_fdtd_sim.setValue(-1)
+
+        self.verticalLayout_6.addWidget(self.progressBar_fdtd_sim)
+
+        self.frame_23 = QFrame(self.frame_17)
+        self.frame_23.setObjectName(u"frame_23")
+        self.frame_23.setFrameShape(QFrame.StyledPanel)
+        self.frame_23.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_2 = QHBoxLayout(self.frame_23)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.pushButton_fdtd_animate = QPushButton(self.frame_23)
+        self.pushButton_fdtd_animate.setObjectName(u"pushButton_fdtd_animate")
+
+        self.horizontalLayout_2.addWidget(self.pushButton_fdtd_animate)
+
+        self.label_fdtd_animate = QLabel(self.frame_23)
         self.label_fdtd_animate.setObjectName(u"label_fdtd_animate")
-        self.label_fdtd_animate.setGeometry(QRect(180, 280, 361, 17))
+
+        self.horizontalLayout_2.addWidget(self.label_fdtd_animate)
+
+        self.verticalLayout_6.addWidget(self.frame_23)
+
+        self.progressBar_fdtd_animate = QProgressBar(self.frame_17)
+        self.progressBar_fdtd_animate.setObjectName(
+            u"progressBar_fdtd_animate")
+        self.progressBar_fdtd_animate.setMaximum(0)
+        self.progressBar_fdtd_animate.setValue(-1)
+
+        self.verticalLayout_6.addWidget(self.progressBar_fdtd_animate)
+
         self.frame_18 = QFrame(self.FDTD_Sim)
         self.frame_18.setObjectName(u"frame_18")
-        self.frame_18.setGeometry(QRect(619, 20, 881, 561))
+        self.frame_18.setGeometry(QRect(510, 20, 871, 581))
         self.frame_18.setFrameShape(QFrame.StyledPanel)
         self.frame_18.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_7 = QVBoxLayout(self.frame_18)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.label_fdtd_anim_title = QLabel(self.frame_18)
         self.label_fdtd_anim_title.setObjectName(u"label_fdtd_anim_title")
-        self.label_fdtd_anim_title.setGeometry(QRect(20, 20, 821, 17))
         self.label_fdtd_anim_title.setFont(font2)
+
+        self.verticalLayout_7.addWidget(self.label_fdtd_anim_title)
+
+        self.qvideo_widget = QVideoWidget(self.frame_18)
+        self.qvideo_widget.setObjectName(u"qvideo_widget")
+        self.qvideo_widget.setMinimumSize(QSize(400, 400))
+
+        self.verticalLayout_7.addWidget(self.qvideo_widget)
+
+        self.frame_24 = QFrame(self.frame_18)
+        self.frame_24.setObjectName(u"frame_24")
+        self.frame_24.setFrameShape(QFrame.StyledPanel)
+        self.frame_24.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_4 = QHBoxLayout(self.frame_24)
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.pushButton_video_play = QPushButton(self.frame_24)
+        self.pushButton_video_play.setObjectName(u"pushButton_video_play")
+        self.pushButton_video_play.setMaximumSize(QSize(50, 50))
+        icon2 = QIcon(QIcon.fromTheme(u"media-playback-start"))
+        self.pushButton_video_play.setIcon(icon2)
+        self.pushButton_video_play.setIconSize(QSize(32, 32))
+
+        self.horizontalLayout_4.addWidget(self.pushButton_video_play)
+
+        self.pushButton_video_pause = QPushButton(self.frame_24)
+        self.pushButton_video_pause.setObjectName(u"pushButton_video_pause")
+        self.pushButton_video_pause.setMaximumSize(QSize(50, 50))
+        icon3 = QIcon(QIcon.fromTheme(u"media-playback-pause"))
+        self.pushButton_video_pause.setIcon(icon3)
+        self.pushButton_video_pause.setIconSize(QSize(32, 32))
+
+        self.horizontalLayout_4.addWidget(self.pushButton_video_pause)
+
+        self.verticalLayout_7.addWidget(self.frame_24)
+
+        self.verticalSpacer_13 = QSpacerItem(
+            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout_7.addItem(self.verticalSpacer_13)
+
         self.stackedWidget.addWidget(self.FDTD_Sim)
         self.frame_nav = QFrame(self.frame)
         self.frame_nav.setObjectName(u"frame_nav")
@@ -1368,14 +1460,16 @@ class Ui_MainWindow(object):
             "MainWindow", u"Scenario description", None))
         self.pushButton_fdtd_simulate.setText(
             QCoreApplication.translate("MainWindow", u"Simulate", None))
-        self.pushButton_fdtd_animate.setText(
-            QCoreApplication.translate("MainWindow", u"Animate", None))
         self.label_fdtd_simulate.setText(QCoreApplication.translate(
             "MainWindow", u"Simulation not run", None))
+        self.pushButton_fdtd_animate.setText(
+            QCoreApplication.translate("MainWindow", u"Animate", None))
         self.label_fdtd_animate.setText(QCoreApplication.translate(
             "MainWindow", u"Animation created!", None))
         self.label_fdtd_anim_title.setText(QCoreApplication.translate(
             "MainWindow", u"Scenario Animation", None))
+        self.pushButton_video_play.setText("")
+        self.pushButton_video_pause.setText("")
         self.label_section_header.setText(
             QCoreApplication.translate("MainWindow", u"Section Header", None))
         self.pushButton_nav_1.setText(
